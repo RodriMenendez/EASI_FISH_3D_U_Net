@@ -59,7 +59,7 @@ def main(args):
     autoencoder = lightning_modules.UNet3DModule(unet3d, args.lr, args.weight_decay)
 
     # train
-    trainer = L.pytorch.Trainer(accelerator='cpu', max_epochs=args.epochs, logger=wandb_logger, log_every_n_steps=1, detect_anomaly=True)
+    trainer = L.pytorch.Trainer(accelerator='auto', max_epochs=args.epochs, logger=wandb_logger, log_every_n_steps=1, detect_anomaly=True)
     trainer.fit(model=autoencoder, train_dataloaders=trainloader, val_dataloaders=testloader)
 
     # test
