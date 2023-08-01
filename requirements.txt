@@ -1,0 +1,6 @@
+torch
+numpy
+glob
+torchvision
+lightning
+monai
