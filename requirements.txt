@@ -1,5 +1,6 @@
 torch
 numpy
 torchvision
+wandb
 lightning
 monai
