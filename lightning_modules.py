@@ -32,7 +32,7 @@ class UNet3DModule(L.LightningModule):
         prec = evaluations.precision(confusion_matrix)
         iou = evaluations.IoU(confusion_matrix)
 
-        self.log_dict({"train acc": acc, "train precision": prec, "train IoU": iou, "train loss": loss})
+        self.log_dict({"train acc": acc, "train precision": prec, "train IoU": iou, "train loss": loss}, on_step=False, on_epoch=True)
 
         return loss
 

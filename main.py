@@ -13,7 +13,7 @@ parser.add_argument('--test_idx', nargs='*', default=[4, 5], type=int, help='ind
 parser.add_argument('--image_shape', nargs=3, default = [64, 128, 128], type=int, help='z x y shape to resize images to (defaults to [64, 128, 128])')
 parser.add_argument('--data_path', type=str, required=True, help='pathfile to dataset')
 parser.add_argument('--batch_size', type=int, default=1, help='batch size for training (defaults to 1)')
-parser.add_argument('--num_workers', default=8, type=int, help='number of workers for dataloader (defaults to 8)')
+parser.add_argument('--num_workers', default=1, type=int, help='number of workers for dataloader (defaults to 1)')
 parser.add_argument('--lr', default=1e-3, type=float, help='learning Rate (defaults to 1e-3)')
 parser.add_argument('--weight_decay', default=0, type=float, help='weight decay(defaults to 0)')
 parser.add_argument('--spatial_dims', default=3, type=int, help='number of spatial dimensions of model (defaults to 3)')
@@ -24,6 +24,8 @@ parser.add_argument('--strides', nargs='+', default=[2, 2], type=int, help='sequ
 parser.add_argument('--kernel_size', nargs='*', default=3, type=int, help='convolution kernel size, the value(s) should be odd. If sequence, its length should equal to dimensions (defaults to 3)')
 parser.add_argument('--epochs', default=10, type=int, help='number of epochs to train for (defaults to 10)')
 parser.add_argument('--run_name', type=str, help='name of run')
+parser.add_argument('--model', choices=['UNet3D', 'UNetR'], help='model to use (currently supports UNet3D and UNetR)')
+parser.add_argument('--accelerator', choices=['auto', 'cuda', 'mps', 'cpu'], default='cpu', help='lightning accelerator (can be auto, cuda, mps, or cpu)')
 
 
 args = parser.parse_args()
@@ -40,26 +42,31 @@ def main(args):
     train_data, trainloader, test_data, testloader = easi_fish
 
     # get model
-    unet3d = models.UNet3D(args.spatial_dims, 
-                            args.in_channels, 
-                            args.out_channels, 
-                            args.channels, 
-                            args.strides, 
-                            args.kernel_size)
+    if args.model == 'UNet3D':
+        model = models.UNet3D(args.spatial_dims, 
+                                args.in_channels, 
+                                args.out_channels, 
+                                args.channels, 
+                                args.strides, 
+                                args.kernel_size)
+    elif args.model == 'UNetR':
+        model = models.UNetR(args.in_channels,
+                             args.out_channels,
+                             args.image_shape)
 
     # wandb
     wandb_config = {
             "dataset": "EASI_FISH",
-            "architecture": "3D U-Net"
+            "architecture": args.model
         }
 
     wandb_logger = WandbLogger(project='EASI_FISH-3DUNet-Segmentation', config=wandb_config, name=args.run_name)
 
     # lightning module
-    autoencoder = lightning_modules.UNet3DModule(unet3d, args.lr, args.weight_decay)
+    autoencoder = lightning_modules.UNet3DModule(model, args.lr, args.weight_decay)
 
     # train
-    trainer = L.pytorch.Trainer(accelerator='auto', max_epochs=args.epochs, logger=wandb_logger, log_every_n_steps=1, detect_anomaly=True)
+    trainer = L.pytorch.Trainer(accelerator=args.accelerator, max_epochs=args.epochs, logger=wandb_logger, log_every_n_steps=1, detect_anomaly=True)
     trainer.fit(model=autoencoder, train_dataloaders=trainloader, val_dataloaders=testloader)
 
     # test
@@ -68,7 +75,7 @@ def main(args):
     # save model
 
     path = './saved_models/' + args.run_name
-    torch.save(unet3d.state_dict(), path)
+    torch.save(model.state_dict(), path)
 
 
 
