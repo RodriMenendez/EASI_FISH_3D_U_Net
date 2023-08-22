@@ -30,7 +30,7 @@ parser.add_argument('--accelerator', choices=['auto', 'cuda', 'mps', 'cpu'], def
 parser.add_argument('--seed', type=int, default=0, help='seed for random data splitting (defaults to 0)')
 parser.add_argument('--dataset', type=str, default=None, help='name of dataset for wandb (defaults to None)')
 parser.add_argument('--wandb_project', type=str, required=True, help='name of wandb project (required)')
-parser.add_argument('--loss', choices=['dice', 'ce'], default='dice', help='loss function to use (currently supports dice loss and cross entropy loss)')
+parser.add_argument('--loss', choices=['dice', 'bce'], default='dice', help='loss function to use (currently supports dice loss and cross entropy loss)')
 
 args = parser.parse_args()
 
