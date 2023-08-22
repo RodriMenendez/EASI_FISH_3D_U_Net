@@ -1,5 +1,6 @@
 import torch
 import lightning as L
+from lightning.pytorch.callbacks.early_stopping import EarlyStopping
 from lightning.pytorch.loggers import WandbLogger
 import argparse
 
@@ -73,7 +74,13 @@ def main(args):
     autoencoder = lightning_modules.UNet3DModule(model, args.lr, args.weight_decay, loss = args.loss)
 
     # train
-    trainer = L.pytorch.Trainer(accelerator=args.accelerator, max_epochs=args.epochs, logger=wandb_logger, log_every_n_steps=1, detect_anomaly=True)
+    early_stop_callback = EarlyStopping(monitor='val loss', min_delta = 0.001, patience=5, mode='min')
+    trainer = L.pytorch.Trainer(accelerator=args.accelerator, 
+                                max_epochs=args.epochs, 
+                                logger=wandb_logger, 
+                                log_every_n_steps=1, 
+                                detect_anomaly=True,
+                                callbacks=[early_stop_callback])
     trainer.fit(model=autoencoder, 
                 train_dataloaders=trainloader if train_data.exists else None, 
                 val_dataloaders=valloader if val_data.exists else None)
