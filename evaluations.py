@@ -19,17 +19,25 @@ def ConfusionMatrix(preds, labels):
     FN = torch.logical_and((preds == 0), (labels == 1)).float().sum()
     return {'TP':TP, 'TN':TN, 'FP':FP, 'FN':FN}
 
-def voxel_accuracy(measures):
+def accuracy(measures):
     return (measures['TP'] + measures['TN'])/(measures['TP']+measures['TN']+measures['FP']+measures['FN'])
 
 def precision(measures):
-    return measures['TP']/(measures['TP']+measures['FP'])
+    den = measures['TP']+measures['FP']
+    output = 0.0 if den == 0 else measures['TP']/den
+    return output
 
 def IoU(measures):
-    return measures['TP']/(measures['TP']+measures['FP']+measures['FN'])
+    den = measures['TP']+measures['FP']+measures['FN']
+    output = 0.0 if den == 0 else measures['TP']/den
+    return output
 
 def prediction(output):
-    output[output >= 0.5] = 1
-    output[output < 0.5] = 0
+    out_channels = output.shape[1]
+    if out_channels == 1:
+        output[output >= 0.5] = 1
+        output[output < 0.5] = 0
+    elif out_channels > 1:
+        output = torch.argmax(output, dim=1, keepdim=True)
 
     return output

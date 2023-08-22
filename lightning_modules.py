@@ -3,10 +3,12 @@ import evaluations
 import lightning as L
 
 class UNet3DModule(L.LightningModule):
-    def __init__(self, model, lr=1e-3, weight_decay=0.0):
+    def __init__(self, model, lr=1e-3, weight_decay=0.0, loss='dice'):
         super().__init__()
         self.model = model
-        self.loss_module = evaluations.DiceLoss()
+        self.loss = loss
+        self.loss_module = evaluations.DiceLoss() if loss == 'dice' \
+                           else torch.nn.CrossEntropyLoss(weight=torch.tensor([0.0008, 0.9992]))
         self.lr = lr
         self.weight_decay = weight_decay
 
@@ -21,14 +23,14 @@ class UNet3DModule(L.LightningModule):
         inputs, labels = batch
 
         output = self.model(inputs)
-        output_norm = torch.sigmoid(output).clone()
-
+        output_norm = torch.sigmoid(output).clone() if self.loss == 'dice' else torch.softmax(output, dim=1)
+        labels = labels if self.loss == 'dice' else labels.squeeze(1).long()
         loss = self.loss_module(output_norm, labels)
 
         preds = evaluations.prediction(output_norm)
 
         confusion_matrix = evaluations.ConfusionMatrix(preds, labels)
-        acc = evaluations.voxel_accuracy(confusion_matrix)
+        acc = evaluations.accuracy(confusion_matrix)
         prec = evaluations.precision(confusion_matrix)
         iou = evaluations.IoU(confusion_matrix)
 
@@ -40,12 +42,13 @@ class UNet3DModule(L.LightningModule):
         inputs, labels = batch
 
         output = self.model(inputs)
-        output_norm = torch.sigmoid(output)
+        output_norm = torch.sigmoid(output).clone() if self.loss == 'dice' else torch.softmax(output, dim=1)
+        labels = labels if self.loss == 'dice' else labels.squeeze(1).long()
         loss = self.loss_module(output_norm, labels)
         preds = evaluations.prediction(output_norm)
 
         confusion_matrix = evaluations.ConfusionMatrix(preds, labels)
-        acc = evaluations.voxel_accuracy(confusion_matrix)
+        acc = evaluations.accuracy(confusion_matrix)
         prec = evaluations.precision(confusion_matrix)
         iou = evaluations.IoU(confusion_matrix)
 
@@ -55,12 +58,13 @@ class UNet3DModule(L.LightningModule):
         inputs, labels = batch
 
         output = self.model(inputs)
-        output_norm = torch.sigmoid(output)
+        output_norm = torch.sigmoid(output).clone() if self.loss == 'dice' else torch.softmax(output, dim=1)
+        labels = labels if self.loss == 'dice' else labels.squeeze(1).long()
         loss = self.loss_module(output_norm, labels)
         preds = evaluations.prediction(output_norm)
 
         confusion_matrix = evaluations.ConfusionMatrix(preds, labels)
-        acc = evaluations.voxel_accuracy(confusion_matrix)
+        acc = evaluations.accuracy(confusion_matrix)
         prec = evaluations.precision(confusion_matrix)
         iou = evaluations.IoU(confusion_matrix)
 

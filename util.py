@@ -1,9 +1,10 @@
 import numpy as np
 import glob
 
-def DataSplit(ratios, data_root, seed):
+def DataSplit(ratios, data_root, seed, data_len=None):
     np.random.seed(seed)
-    data_len = len(glob.glob(data_root + 'images/*.tif'))
+    if not data_len:
+        data_len = len(glob.glob(data_root + 'images/*.tif'))
     idx = np.arange(data_len)
     np.random.shuffle(idx)
     train_len, test_len = round(data_len*ratios[0]), round(data_len*ratios[1])
