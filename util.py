@@ -21,6 +21,6 @@ def ImageSlices(dataset_idx, z):
     output = np.ones(len(dataset_idx)*z)
 
     for i, idx in enumerate(dataset_idx):
-        output[z*i:z*(i+1)] = np.arange(idx, idx+z)
+        output[z*i:z*(i+1)] = np.arange(z*idx, z*(idx+1))
 
     return output
