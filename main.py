@@ -32,6 +32,8 @@ parser.add_argument('--seed', type=int, default=0, help='seed for random data sp
 parser.add_argument('--dataset', type=str, default=None, help='name of dataset for wandb (defaults to None)')
 parser.add_argument('--wandb_project', type=str, required=True, help='name of wandb project (required)')
 parser.add_argument('--loss', choices=['dice', 'bce'], default='dice', help='loss function to use (currently supports dice loss and cross entropy loss)')
+parser.add_argument('--min_delta', type=float, default=0.001, help='minimum change in loss for early stopping')
+parser.add_argument('--patience', type=int, default=5, help='patience setting for early stopping')
 
 args = parser.parse_args()
 
@@ -74,7 +76,7 @@ def main(args):
     autoencoder = lightning_modules.UNet3DModule(model, args.lr, args.weight_decay, loss = args.loss)
 
     # train
-    early_stop_callback = EarlyStopping(monitor='val loss', min_delta = 0.001, patience=5, mode='min')
+    early_stop_callback = EarlyStopping(monitor='val loss', min_delta = args.min_delta, patience=args.patience, mode='min')
     trainer = L.pytorch.Trainer(accelerator=args.accelerator, 
                                 max_epochs=args.epochs, 
                                 logger=wandb_logger, 
