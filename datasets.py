@@ -4,7 +4,7 @@ import numpy as np
 import glob
 from tifffile import imread
     
-class CustomDataset(Dataset):
+class CustomTifDataset(Dataset):
     def __init__(self, data_root, im_idxs, transform=None, target_transform=None):
         self.im_idxs = im_idxs
         self.image_paths = np.array(sorted(glob.glob(data_root + "images/*.tif")))[self.im_idxs]
@@ -50,6 +50,50 @@ class CustomTensorDataset(Dataset):
     def __getitem__(self, idx):
         im = self.images[idx].unsqueeze(0)
         im_mask = self.masks[idx].unsqueeze(0)
+        
+        if self.transform:
+            im = self.transform(im)
+
+        if self.target_transform:
+            im_mask = self.target_transform(im_mask)
+
+        return im, im_mask
+    
+class CustomVaa3DDataset(Dataset):
+    def __init__(self, masks_path, inputs_path, idxs, transform=None, target_transform=None):
+        self.idxs = idxs
+        self.inputs_paths = np.array(sorted(glob.glob(inputs_path+"**/*[!output].tif", recursive=True)))[idxs]
+        self.inputs_paths, self.masks_paths = self.get_existing_data_paths(masks_path, self.inputs_paths)
+        self.transform = transform
+        self.target_transform = target_transform
+        self.exists = len(self.inputs_paths) != 0 and len(self.masks_paths) != 0
+
+    def get_mask_path(self, masks_path, input_path):
+        input_path_prefix = '.'.join(input_path.split('.')[:-1])
+        swc_name = glob.glob(input_path_prefix+"*.swc")[0]
+        common_name = swc_name.rsplit('/', 1)[-1].rsplit('.', 1)[0]
+        mask_file_name = masks_path + f'BigN_mask{common_name}_output.tif'
+
+        return mask_file_name
+
+    def get_existing_data_paths(self, masks_path, input_paths):
+        masks_paths_exists = []
+        inputs_paths_exists = []
+
+        for input_path in input_paths:
+            mask_path_file = self.get_mask_path(masks_path, input_path)
+            if glob.glob(mask_path_file):
+                masks_paths_exists.append(mask_path_file)
+                inputs_paths_exists.append(input_path)
+
+        return inputs_paths_exists, masks_paths_exists
+
+    def __len__(self):
+        return len(self.masks_paths)
+
+    def __getitem__(self, idx):
+        im = torch.tensor(imread(self.inputs_paths[idx]).astype(float)).unsqueeze(0)
+        im_mask = torch.tensor(imread(self.masks_paths[idx]).astype(float)).unsqueeze(0)
         
         if self.transform:
             im = self.transform(im)
