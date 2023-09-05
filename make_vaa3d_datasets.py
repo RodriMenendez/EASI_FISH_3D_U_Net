@@ -26,9 +26,9 @@ args = parser.parse_args()
 
 def CreateDataset(datasets_save_path, ratios, image_shape, masks_path, inputs_path, data_len, batch_size, num_workers, seed, spatial_dims=3):
     if not data_len:
-        data_len = len(glob.glob(masks_path+"*"))
+        data_len = len(glob.glob(inputs_path+"**/*[!output].tif", recursive=True))
 
-    train_idx, test_idx, val_idx = util.DataSplit(ratios, seed, data_len, spatial_dims, image_shape[0])
+    train_idx, test_idx, val_idx = util.DataSplit(ratios, None, seed, data_len, spatial_dims, image_shape[0])
 
     if spatial_dims == 3:
         image_resize = transformations.Resize3D(image_shape)
