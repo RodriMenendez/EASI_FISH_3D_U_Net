@@ -69,10 +69,14 @@ class CustomVaa3DDataset(Dataset):
         self.exists = len(self.inputs_paths) != 0 and len(self.masks_paths) != 0
 
     def get_mask_path(self, masks_path, input_path):
-        input_path_prefix = '.'.join(input_path.split('.')[:-1])
-        swc_name = glob.glob(input_path_prefix+"*.swc")[0]
-        common_name = swc_name.rsplit('/', 1)[-1].rsplit('.', 1)[0]
-        mask_file_name = masks_path + f'BigN_mask{common_name}_output.tif'
+        # input_path_prefix = '.'.join(input_path.split('.')[:-1])
+        # swc_name = glob.glob(input_path_prefix+"*.swc")[0]
+        # common_name = swc_name.rsplit('/', 1)[-1].rsplit('.', 1)[0]
+        # mask_file_name = masks_path + f'BigN_mask{common_name}_output.tif'
+
+        ## TEST ##
+        name_match = input_path.split('/')[-1].split('.')[0]
+        mask_file_name = glob.glob(f'{masks_path}/*{name_match}*')
 
         return mask_file_name
 
@@ -82,7 +86,7 @@ class CustomVaa3DDataset(Dataset):
 
         for input_path in input_paths:
             mask_path_file = self.get_mask_path(masks_path, input_path)
-            if glob.glob(mask_path_file):
+            if len(mask_path_file) != 0:
                 masks_paths_exists.append(mask_path_file)
                 inputs_paths_exists.append(input_path)
 
