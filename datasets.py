@@ -60,13 +60,18 @@ class CustomTensorDataset(Dataset):
         return im, im_mask
     
 class CustomVaa3DDataset(Dataset):
-    def __init__(self, masks_path, inputs_path, idxs, transform=None, target_transform=None):
-        self.idxs = idxs
-        self.inputs_paths = np.array(sorted(glob.glob(inputs_path+"**/*[!output].tif", recursive=True)))[idxs]
+    def __init__(self, masks_path, inputs_path, idxs, transform=None, target_transform=None, spatial_dims=3, depth=32):
+        if spatial_dims == 2:
+            self.idxs = np.unique(idxs//depth).astype(int)
+        else:
+            self.idxs = idxs
+        self.inputs_paths = np.array(sorted(glob.glob(inputs_path+"**/*[!output].tif", recursive=True)))[self.idxs]
         self.inputs_paths, self.masks_paths = self.get_existing_data_paths(masks_path, self.inputs_paths)
         self.transform = transform
         self.target_transform = target_transform
         self.exists = len(self.inputs_paths) != 0 and len(self.masks_paths) != 0
+        self.depth = depth
+        self.spatial_dims = spatial_dims
 
     def get_mask_path(self, masks_path, input_path):
         name_match = input_path.split('/')[-1].split('.')[0]
@@ -87,11 +92,25 @@ class CustomVaa3DDataset(Dataset):
         return inputs_paths_exists, masks_paths_exists
 
     def __len__(self):
-        return len(self.masks_paths)
+        if self.spatial_dims == 2:
+            length = self.depth*len(self.masks_paths)
+        else:
+            length = len(self.masks_paths)
+
+        return length
 
     def __getitem__(self, idx):
-        im = torch.tensor(imread(self.inputs_paths[idx]).astype(float)).unsqueeze(0)
-        im_mask = torch.tensor(imread(self.masks_paths[idx]).astype(float)).unsqueeze(0)
+        idx_3d = idx//self.depth
+        idx_2d = idx%self.depth
+        im = torch.tensor(imread(self.inputs_paths[idx_3d]).astype(float))
+        im_mask = torch.tensor(imread(self.masks_paths[idx_3d]).astype(float))
+
+        if self.spatial_dims == 3:
+            im = im.unsqueeze(0)
+            im_mask = im_mask.unsqueeze(0)
+        else:
+            im = im[idx_2d].unsqueeze(0).to(float)
+            im_mask = im_mask[idx_2d].unsqueeze(0)
         
         if self.transform:
             im = self.transform(im)
