@@ -85,7 +85,7 @@ class CustomVaa3DDataset(Dataset):
 
         for input_path in input_paths:
             mask_path_file = self.get_mask_path(masks_path, input_path)
-            if len(mask_path_file) != 0:
+            if len(mask_path_file) == 1:
                 masks_paths_exists.append(mask_path_file)
                 inputs_paths_exists.append(input_path)
 
