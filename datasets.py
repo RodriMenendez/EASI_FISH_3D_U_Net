@@ -100,17 +100,20 @@ class CustomVaa3DDataset(Dataset):
         return length
 
     def __getitem__(self, idx):
-        idx_3d = idx//self.depth
-        idx_2d = idx%self.depth
-        im = torch.tensor(imread(self.inputs_paths[idx_3d]).astype(float))
-        im_mask = torch.tensor(imread(self.masks_paths[idx_3d]).astype(float))
-
-        if self.spatial_dims == 3:
-            im = im.unsqueeze(0)
-            im_mask = im_mask.unsqueeze(0)
+        if self.spatial_dims == 2:
+            idx_3d = idx//self.depth
+            idx_2d = idx%self.depth
         else:
-            im = im[idx_2d].unsqueeze(0).to(float)
-            im_mask = im_mask[idx_2d].unsqueeze(0)
+            idx_3d = idx
+
+        im = torch.tensor(imread(self.inputs_paths[idx_3d]).astype(float))
+        im = im.unsqueeze(0)
+        im_mask = torch.tensor(imread(self.masks_paths[idx_3d]).astype(float))
+        im_mask = im.unsqueeze(0)
+
+        if self.spatial_dims == 2:
+            im = im[idx_2d]
+            im_mask = im_mask[idx_2d]
         
         if self.transform:
             im = self.transform(im)
