@@ -106,10 +106,8 @@ class CustomVaa3DDataset(Dataset):
         else:
             idx_3d = idx
 
-        im = torch.tensor(imread(self.inputs_paths[idx_3d]).astype(float))
-        im = im.unsqueeze(0)
-        im_mask = torch.tensor(imread(self.masks_paths[idx_3d]).astype(float))
-        im_mask = im.unsqueeze(0)
+        im = torch.tensor(imread(self.inputs_paths[idx_3d]).astype(float)).unsqueeze(0)
+        im_mask = torch.tensor(imread(self.masks_paths[idx_3d]).astype(float)).unsqueeze(0)
 
         if self.spatial_dims == 2:
             im = im[idx_2d]
