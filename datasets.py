@@ -65,7 +65,7 @@ class CustomVaa3DDataset(Dataset):
             self.idxs = np.unique(idxs//depth).astype(int)
         else:
             self.idxs = idxs
-        self.inputs_paths = np.array(sorted(glob.glob(inputs_path+"**/*[!output].tif", recursive=True)))[self.idxs]
+        self.inputs_paths = np.array(sorted(glob.glob(inputs_path+"[!inputs]*/*[!output].tif", recursive=True)))[self.idxs]
         self.inputs_paths, self.masks_paths = self.get_existing_data_paths(masks_path, self.inputs_paths)
         self.transform = transform
         self.target_transform = target_transform

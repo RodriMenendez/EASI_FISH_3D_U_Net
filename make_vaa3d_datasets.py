@@ -32,7 +32,7 @@ def CreateDataset(datasets_save_path, ratios, image_shape, masks_path, inputs_pa
 
     if spatial_dims == 3:
         image_resize = transformations.Resize3D(image_shape)
-        label_resize = transforms.Compose([transformations.Resize3D(image_shape, "nearest"), transformations.BinaryReplace(0.0)])
+        label_resize = transforms.Compose([transformations.Resize3D(image_shape, "bilinear"), transformations.BinaryReplace(0.0)])
     elif spatial_dims == 2:
         image_resize = transforms.Resize(image_shape[1:], antialias=True)
         label_resize = transforms.Compose([transforms.Resize(image_shape[1:], transforms.InterpolationMode.NEAREST_EXACT), transformations.BinaryReplace(0.0)])
