@@ -41,6 +41,7 @@ parser.add_argument('--min_delta', type=float, default=0.001, help='minimum chan
 parser.add_argument('--patience', type=int, default=5, help='patience setting for early stopping')
 parser.add_argument('--custom_dataset', default='tensor', help='name of custom dataset class to use or list of datasets in the form: (train dataset, test dataset, validation dataset)')
 parser.add_argument('--transforms', nargs='*', default=None, type=str, help='list of transformations to be used on data. Options: \'maxpool\', \'bilinear\', and \'nearest\'.')
+parser.add_argument('--saved_model_path', type=str, default=None, help='filepath to existing model to load and train')
 
 args = parser.parse_args()
 
@@ -73,6 +74,9 @@ def main(args):
         model = models.UNetR(args.in_channels,
                              args.out_channels,
                              args.image_shape)
+        
+    if args.saved_model_path:
+        model.load_state_dict(torch.load(args.saved_model_path))
 
     # wandb
     wandb_config = {
