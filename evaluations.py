@@ -54,9 +54,9 @@ def get_surface_area(mask):
 def get_volume(mask, normalize=True):
     norm_value = 1
     if normalize:
-        norm_value = torch.prod(torch.tensor(mask.shape)).item()
+        norm_value = torch.prod(torch.tensor(mask.shape))
     
-    volume = torch.sum(mask)/norm_value
+    volume = (torch.sum(mask)/norm_value).item()
 
     return volume
 
